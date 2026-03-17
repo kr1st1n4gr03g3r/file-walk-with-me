@@ -25,7 +25,7 @@ A lightweight command-line utility that scans a directory tree and generates an 
 
 ---
 
-### ⛓️ What it does
+## ⛓️ What it does
 
 **Point it at a folder, and it creates an `xlsx` file with:**
 
@@ -42,9 +42,10 @@ A lightweight command-line utility that scans a directory tree and generates an 
 - Understanding what's taking up space
 - Duplicated folders
 
+
 ---
 
-### 💾 Installation
+## 💾 Installation
 
 ```
 git clone https://github.com/kr1st1n4gr03g3r/file-walk-with-me.git
@@ -53,6 +54,7 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
+
 ---
 
 # 𖣠 Usage
@@ -67,7 +69,7 @@ Then run:
 python3 src/auditor.py  [output_file.xlsx]
 ```
 
-### Examples
+## Examples
 ```bash
 # Scan a folder, create default report
 python3 src/auditor.py "/path/to/files"
@@ -75,9 +77,10 @@ python3 src/auditor.py "/path/to/files"
 # Scan and save with custom filename
 python3 src/auditor.py "/path/to/files" my_audit.xlsx
 ```
+
 ---
 
-### 🍖 Examples
+## 🍖 Examples
 
 ```
 # Scan a folder, create default report
@@ -90,9 +93,10 @@ python src/auditor.py "/home/user/documents" my_audit.xls
 python src/auditor.py "/Volumes/shared/files"
 
 ```
+
 ---
 
-### 🪐 Output
+## 🪐 Output
 
 The script creates an Excel file with columns:
 | File Type | File Name | File Path | Size (MB) |
@@ -100,7 +104,9 @@ The script creates an Excel file with columns:
 | .pdf | report.pdf | C:\docs\report.pdf | 2.45 |
 | .xlsx | data.xlsx | C:\docs\data.xlsx | 0.85 |
 
-### 🐛 Requirements
+---
+
+## 🐛 Requirements
 
 - Python 3.7+
 - openpyxl (for Excel file creation)
@@ -111,21 +117,24 @@ pip install openpyxl
 
 🔗 [openpyxl Docs](https://openpyxl.readthedocs.io/en/stable/)
 
-### 🚗 How it Works
+---
+
+## 🚗 How it Works
 1. `scan_directory(path)` - Recursively walks the directory tree using `os.walk()`
 2. Collects filename, extension, fullpath, and size for each file
 3. Converts bytes to megabytes for readibility
 4. `create_excel(files, output_path)` - Writes results to an `.xlsx` file
 5. Sets Column widths for professional appearance
 
+---
 
-### ⬇️ Future Iterations
+## ⬇️ Future Iterations
 
 [ ] Filter by extension
 [ ] Find duplicate files by hash
 [ ] Generate summary statistics (total size, oldest / newest files)
 [ ] Progress bar for large scans
 
-### License
+## License
 
 MIT
