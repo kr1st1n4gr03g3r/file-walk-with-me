@@ -241,7 +241,7 @@ csv_escape() {
 print_header
 echo "  Scanning: $ROOT_DIR"
 echo ""
-echo "  Counting files..."
+echo "  Counting files...\n"
 
 # pass 1 - count total files so we can show a real progress bar
 total_files=0

@@ -1,3 +1,45 @@
+#!/usr/bin/env python3
+# =============================================================================
+# file-walk-with-me - Python audit script for full Excel output
+# =============================================================================
+#
+# Repo: https://github.com/kr1st1n4gr03g3r/file-walk-with-me
+#
+# Outputs a real .xlsx Excel report with file metadata and audit columns.
+#
+# USAGE
+#   python auditor.py <directory_path> [output_file.xlsx]
+#
+# EXAMPLES
+#   python auditor.py "/Users/kristinagroeger/Documents"
+#   python auditor.py "/Volumes/shared_drive" shared_drive_audit.xlsx
+#
+# WINDOWS
+#   If Python is available in your environment, you can run:
+#     python auditor.py "C:/Users/yourname/Documents"
+#
+#   Or depending on your setup:
+#     py auditor.py "C:/Users/yourname/Documents"
+#
+# OUTPUT COLUMNS
+#   File Type   -> file extension, or (no ext)
+#   File Name   -> base file name only
+#   File Path   -> full path to the file
+#   Size (MB)   -> file size in megabytes
+#   Depth       -> folder depth relative to the scan root
+#   Status      -> detected versioning state from folder names
+#
+# STATUS COLUMN
+#   -00              -> 00           (archived, do not migrate)
+#   -01- (current)   -> current      (ready to migrate)
+#   -02 (working on) -> working on   (in progress, do not migrate)
+#   (none found)     -> unversioned
+#
+# DEPTH COLUMN
+#   Number of folder levels from your scan root.
+#   A file directly inside the root directory has depth 0.
+# =============================================================================
+
 import os
 import re
 import sys
@@ -153,7 +195,7 @@ def get_status(filepath):
 def collect_paths(root_path, progress):
     ## fast first pass, just grabs paths - no stat calls yet
     paths = []
-    for dirpath, _, filenames in os.walk(root_path):
+    for dirpath, _, filenames in os.walk(root_path, onerror=lambda e: None):
         for filename in filenames:
             paths.append(os.path.join(dirpath, filename))
             if len(paths) % 10 == 0:
@@ -170,26 +212,41 @@ def scan_directory(root_path, paths, progress):
     abs_root = os.path.abspath(root_path)
     total = len(paths)
 
+    skipped_missing = 0
+    skipped_permission = 0
+    skipped_other = 0
+
     for i, filepath in enumerate(paths):
-        filename = os.path.basename(filepath)
-        _, ext = os.path.splitext(filename)
+        try:
+            filename = os.path.basename(filepath)
+            _, ext = os.path.splitext(filename)
 
-        size_bytes = os.path.getsize(filepath)
-        size_mb = round(size_bytes / (1024 * 1024), 2)
+            size_bytes = os.path.getsize(filepath)
+            size_mb = round(size_bytes / (1024 * 1024), 2)
 
-        files.append({
-            "extension": ext if ext else "(no ext)",
-            "filename": filename,
-            "filepath": filepath,
-            "size_mb": size_mb,
-            "depth": get_depth(filepath, abs_root),
-            "status": get_status(filepath)
-        })
+            files.append({
+                "extension": ext if ext else "(no ext)",
+                "filename": filename,
+                "filepath": filepath,
+                "size_mb": size_mb,
+                "depth": get_depth(filepath, abs_root),
+                "status": get_status(filepath)
+            })
+
+        except FileNotFoundError:
+            skipped_missing += 1
+            continue
+        except PermissionError:
+            skipped_permission += 1
+            continue
+        except OSError:
+            skipped_other += 1
+            continue
 
         if (i + 1) % 10 == 0 or (i + 1) == total:
             progress.bar(i + 1, total)
 
-    return files
+    return files, skipped_missing, skipped_permission, skipped_other
 
 
 def create_excel(files, output_path):
@@ -254,11 +311,13 @@ def main():
         print("  Processing files...")
 
         ## second pass, do the actual work
-        files = scan_directory(target_dir, paths, progress)
+        files, skipped_missing, skipped_permission, skipped_other = scan_directory(target_dir, paths, progress)
         progress.done(len(files))
 
         print(f"✅ Found {len(files):,} files")
-        print(f"💾 Report saved to {output_file}")
+        print(f"⏭️  Skipped missing files: {skipped_missing:,}")
+        print(f"🔒 Skipped permission denied: {skipped_permission:,}")
+        print(f"⚠️  Skipped other file errors: {skipped_other:,}")
         print("📝 Creating Excel report...")
         print()
 
