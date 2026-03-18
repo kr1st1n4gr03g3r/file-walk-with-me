@@ -1,11 +1,26 @@
-# 📁 File Walk With Me
+# 📁 🔥 File Walk With Me
 
 
 A lightweight command-line utility that scans a directory tree and generates a report with file metadata, including nesting depth and versioning status.
 
 Available in two forms:
 - **Python** → outputs `.xlsx` (Excel workbook)
-- **Bash** → outputs `.csv` (works in restricted environments where package installs are not possible)
+- **Bash** → outputs `.csv` (works in restricted environments where package installs are not possible, and on macOS Terminal out of the box)
+
+<br>
+
+## 🕵🏻‍♀️ Why I built this
+
+I work in municipal government, where IT restrictions are a constant reality: Overnight OneDrive syncs you didn't ask for, VS Code Marketplace blocked, `C://` access randomly revoked, and having to justify why Git is necessary on a software project. Standard stuff  if you've worked in a locked-down Windows environment.
+
+I was leading a file migration across a shared drive where versioning was done manually: authors named their folders things like `current-00`, `working-01`, `approved-02`, `approved-final`, `approved-final-final`, mixed into a reusable media repository with no naming conventions and nesting up to 22 levels deep. I needed to know what we actually had before I could tell my team how to move it. The bottleneck was known all the way up to Director level. The usual routes weren't moving.
+
+I wrote a Python script on my Mac. It worked. Then I tried to run it at work in the Microsoft environment... To no one's surprise, every restriction at once. 🙅🏻‍♀️ 
+
+Rather than wait on a 2-3 month IT ticket, I remembered that VS Code's integrated terminal ships with Git for Windows, which includes bash. No install, no admin rights, nothing outside policy. I rewrote the logic as a bash script using only built-in shell tools, and it ran fine.
+
+Both versions are in this repo. The Python script is the full one. The bash version exists because sometimes you work with what you've got.
+
 
 <br>
 
@@ -119,6 +134,18 @@ bash scripts/audit.sh "/b/shared_drive" b_drive_audit.csv
 bash scripts/audit.sh "/b/departments/finance" finance_audit.csv
 ```
 
+### Bash (macOS Terminal)
+```bash
+# Scan a local folder
+bash scripts/audit.sh "/Users/yourname/Documents"
+
+# Scan a mounted network drive or external volume
+bash scripts/audit.sh "/Volumes/SharedDrive" shared_drive_audit.csv
+
+# Custom output name
+bash scripts/audit.sh "/Users/yourname/Projects" projects_audit.csv
+```
+
 <br>
 
 ## 🪐 Output
@@ -199,7 +226,7 @@ pip install openpyxl
 [ ] Filter by extension
 [ ] Find duplicate files by hash
 [ ] Generate summary statistics (total size, oldest / newest files)
-[ ] Progress bar for large scans
+[x] Progress bar for large scans
 [ ] Command prompt choices to choose folder, create alias command, and make it executable `chmod`
 [ ] Find duplicate files in file system despite their locations
 [ ] Explore further metadata capabilities
