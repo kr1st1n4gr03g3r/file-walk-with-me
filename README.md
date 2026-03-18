@@ -221,24 +221,24 @@ pip install openpyxl
 
 ## ⬇️ Future Iterations
 
-[x] Generate a column with nesting depth level
-[x] Export to `CSV` (Bash fallback for restricted environments)
-[ ] Filter by extension
-[ ] Find duplicate files by hash
-[ ] Generate summary statistics (total size, oldest / newest files)
-[x] Progress bar for large scans
-[ ] Command prompt choices to choose folder, create alias command, and make it executable `chmod`
-[ ] Find duplicate files in file system despite their locations
-[ ] Explore further metadata capabilities
-[ ] Sort/filter results in Excel (add AutoFilter)
-[ ] Exclude folders (like `node_modules`, `.git`, `venv`)
-[ ] File age calculation (days since modified)
-[ ] Permission checks (read-only files, access denied logging)
-[ ] Parallel scanning for faster processing on large drives
-[ ] Config file support (remember last scanned path)
-[ ] Recursive depth limit (scan only N levels deep)
-[ ] Generate HTML report alternative
-[ ] Integration with system file explorer (right-click → audit this folder)
+[x] Generate a column with nesting depth level  
+[x] Export to `CSV` (Bash fallback for restricted environments)  
+[ ] Filter by extension  
+[ ] Find duplicate files by hash  
+[ ] Generate summary statistics (total size, oldest / newest files)  
+[x] Progress bar for large scans  
+[ ] Command prompt choices to choose folder, create alias command, and make it executable `chmod`  
+[ ] Find duplicate files in file system despite their locations  
+[ ] Explore further metadata capabilities  
+[ ] Sort/filter results in Excel (add AutoFilter)  
+[ ] Exclude folders (like `node_modules`, `.git`, `venv`)  
+[ ] File age calculation (days since modified)  
+[ ] Permission checks (read-only files, access denied logging)  
+[ ] Parallel scanning for faster processing on large drives  
+[ ] Config file support (remember last scanned path)  
+[ ] Recursive depth limit (scan only N levels deep)  
+[ ] Generate HTML report alternative  
+[ ] Integration with system file explorer (right-click → audit this folder)  
 
 <br>
 
