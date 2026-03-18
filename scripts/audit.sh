@@ -3,6 +3,8 @@
 # file-walk-with-me — Bash fallback for restricted Windows environments
 # =============================================================================
 #
+# Repo: https://github.com/kr1st1n4gr03g3r/file-walk-with-me
+#
 # Outputs a CSV report instead of .xlsx. Excel can open CSV files directly.
 #
 # USAGE
@@ -46,45 +48,104 @@ fi
 # progress display
 
 FIRE_FRAMES=(
-    "  ) )  ( (  ) )  ( ( "
-    " ) )  ( (  ) )  ( (  "
-    ") )  ( (  ) )  ( (   "
-    " )  ( (  ) )  ( (  ) "
-    "  ( (  ) )  ( (  ) ) "
-    " ( (  ) )  ( (  ) )  "
-    "( (  ) )  ( (  ) )   "
-    " (  ) )  ( (  ) )  ( "
+    "   (  )   (   )  (  )   "
+    "  (   )  ) ^ (  (   )  "
+    "   ) (  (  ^ ) )  ) (  "
+    "  ( (  ) ) ^ ( (  ) )  "
+    "   ) ) (  ^^^  ) ( (   "
+    "  ( (  ) )^^^^(  ) )   "
+    "   ) (   )^^^^^ ) (    "
+    "  (   ) (^^^^^^^) (    "
+)
+
+STATUS_MESSAGES=(
+    "☕️ A damn fine scan ☕️"
+    "🦉 Hoooooot Hoooooooot 🦉"
+    "🎤  Diane, here's something we haven't seen before: a mounted disk 🎤"
+    "🫧  Those GBs you like are going to come back in style 🫧"
+    "🐟 There's a file in the percolator 🐟"
+    "🔴 This path is not what it seems 🔴"
+    "🌲 Scanning the woods 🌲"
+    "🔥 File walk with me 🔥"
+    "🪵  My log has something to say about your versioning patterns 🪵"
+    "🩶  The directory is wrapped in plastic 🩶"
+    "🪺  We live inside a nested folder 🪺"
+    "🕳️  Entering the Black Lodge 🕳️"
+    "📼  Diane, the shared drive is haunted 📼"
+    "🎞️  Meanwhile... 🎞️"
 )
 
 BAR_WIDTH=30
-LINE_WIDTH=90
+LINE_WIDTH=160
 FRAME_IDX=0
+CURRENT_FRAME=""
+MESSAGE_IDX=0
+CURRENT_MESSAGE="${STATUS_MESSAGES[0]}"
+LAST_MESSAGE_CHANGE=0
+DISPLAY_INITIALIZED=0
 
 print_header() {
     echo ""
     echo "  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    echo "    📂 🔥 f i l e   w a l k   w i t h   m e"
+    echo "    📂 🔥 F i l e   W a l k   W i t h   M e" 📂 🔥
     echo "  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo ""
 }
 
 next_frame() {
-    echo "${FIRE_FRAMES[$((FRAME_IDX % ${#FIRE_FRAMES[@]}))]}"
+    CURRENT_FRAME="${FIRE_FRAMES[$((FRAME_IDX % ${#FIRE_FRAMES[@]}))]}"
     FRAME_IDX=$((FRAME_IDX + 1))
+}
+
+update_message() {
+    local now
+    now=$(date +%s)
+
+    if [ "$LAST_MESSAGE_CHANGE" -eq 0 ]; then
+        LAST_MESSAGE_CHANGE="$now"
+        CURRENT_MESSAGE="${STATUS_MESSAGES[$MESSAGE_IDX]}"
+        return
+    fi
+
+    if [ $((now - LAST_MESSAGE_CHANGE)) -ge 4 ]; then
+        MESSAGE_IDX=$(((MESSAGE_IDX + 1) % ${#STATUS_MESSAGES[@]}))
+        CURRENT_MESSAGE="${STATUS_MESSAGES[$MESSAGE_IDX]}"
+        LAST_MESSAGE_CHANGE="$now"
+    fi
+}
+
+init_display() {
+    if [ "$DISPLAY_INITIALIZED" -eq 0 ]; then
+        printf "\n\n\n"
+        DISPLAY_INITIALIZED=1
+    fi
+}
+
+redraw_display() {
+    local line1="$1"
+    local line2="$2"
+    local line3="$3"
+
+    init_display
+    printf "\033[3F\033[J"
+    printf "%s\n%s\n%s\n" "$line1" "$line2" "$line3"
 }
 
 show_spinner() {
     local count="$1"
-    local frame
-    frame=$(next_frame)
-    printf "\r  %s  The owls are counting...  %d" "$frame" "$count"
+    next_frame
+    update_message
+    redraw_display \
+        "$CURRENT_FRAME" \
+        "$CURRENT_MESSAGE" \
+        "$count files counted..."
 }
 
 show_bar() {
     local current="$1"
     local total="$2"
-    local frame
-    frame=$(next_frame)
+    next_frame
+    update_message
 
     local pct=0
     local filled=0
@@ -104,7 +165,10 @@ show_bar() {
         i=$((i + 1))
     done
 
-    printf "\r  %s  [%s] %3d%%  |  %d / %d" "$frame" "$bar" "$pct" "$current" "$total"
+    redraw_display \
+        "$CURRENT_FRAME" \
+        "$CURRENT_MESSAGE" \
+        "[$bar]  $pct%  |  $current / $total"
 }
 
 show_done() {
@@ -115,12 +179,19 @@ show_done() {
         bar="${bar}#"
         i=$((i + 1))
     done
-    printf "\r  ( o,o )  ( o,o )  ( o,o )    [%s] 100%%  |  %d / %d\n\n" \
-        "$bar" "$total" "$total"
+
+    redraw_display \
+        "  ( o,o )  ( o,o )  ( o,o )" \
+        "✅ Audit complete" \
+        "[$bar]  100%  |  $total / $total"
+    echo ""
 }
 
 clear_line() {
-    printf "\r%${LINE_WIDTH}s\r" ""
+    if [ "$DISPLAY_INITIALIZED" -eq 1 ]; then
+        printf "\033[3F\033[J"
+        DISPLAY_INITIALIZED=0
+    fi
 }
 
 # returns file size in bytes
@@ -145,7 +216,7 @@ get_depth() {
 }
 
 # detects versioning suffix anywhere in the path
-# order matters — check specific patterns beofre -00 or it'll match -001 etc
+# order matters - check specific patterns before -00 or it'll match -001 etc
 get_status() {
     local filepath="$1"
     if printf '%s' "$filepath" | grep -qiE -- '-02[[:space:]]*\(working[[:space:]]+on\)'; then
@@ -170,24 +241,26 @@ csv_escape() {
 print_header
 echo "  Scanning: $ROOT_DIR"
 echo ""
+echo "  Counting files...\n"
 
-# pass 1 — count total files so we can show a real progress bar and not sit around all day wondering if it's still running
+# pass 1 - count total files so we can show a real progress bar
 total_files=0
 spinner_tick=0
-while IFS= read -r filepath; do
+while IFS= read -r -d '' filepath; do
     total_files=$((total_files + 1))
     spinner_tick=$((spinner_tick + 1))
-    if [ "$((spinner_tick % 200))" -eq 0 ]; then
+    if [ "$((spinner_tick % 10))" -eq 0 ]; then
         show_spinner "$total_files"
     fi
-done < <(find "$ROOT_DIR" -type f)
+done < <(find "$ROOT_DIR" -type f -print0)
 
 clear_line
+echo "  Processing files..."
 
 # write CSV header
 printf 'File Type,File Name,File Path,Size (MB),Depth,Status\n' > "$OUTPUT"
 
-# pass 2 — process files
+# pass 2 - process files
 file_count=0
 
 while IFS= read -r -d '' filepath; do
@@ -216,7 +289,7 @@ while IFS= read -r -d '' filepath; do
 
     file_count=$((file_count + 1))
 
-    if [ "$((file_count % 50))" -eq 0 ]; then
+    if [ "$((file_count % 10))" -eq 0 ]; then
         show_bar "$file_count" "$total_files"
     fi
 
