@@ -59,6 +59,7 @@ FIRE_FRAMES=(
 BAR_WIDTH=30
 LINE_WIDTH=90
 FRAME_IDX=0
+CURRENT_FRAME=""
 
 print_header() {
     echo ""
@@ -69,22 +70,20 @@ print_header() {
 }
 
 next_frame() {
-    echo "${FIRE_FRAMES[$((FRAME_IDX % ${#FIRE_FRAMES[@]}))]}"
+    CURRENT_FRAME="${FIRE_FRAMES[$((FRAME_IDX % ${#FIRE_FRAMES[@]}))]}"
     FRAME_IDX=$((FRAME_IDX + 1))
 }
 
 show_spinner() {
     local count="$1"
-    local frame
-    frame=$(next_frame)
-    printf "\r  %s  The owls are counting...  %d" "$frame" "$count"
+    next_frame
+    printf "\r  %s  The owls are counting...  %d" "$CURRENT_FRAME" "$count"
 }
 
 show_bar() {
     local current="$1"
     local total="$2"
-    local frame
-    frame=$(next_frame)
+    next_frame
 
     local pct=0
     local filled=0
@@ -104,7 +103,7 @@ show_bar() {
         i=$((i + 1))
     done
 
-    printf "\r  %s  [%s] %3d%%  |  %d / %d" "$frame" "$bar" "$pct" "$current" "$total"
+    printf "\r  %s  [%s] %3d%%  |  %d / %d" "$CURRENT_FRAME" "$bar" "$pct" "$current" "$total"
 }
 
 show_done() {
@@ -145,7 +144,7 @@ get_depth() {
 }
 
 # detects versioning suffix anywhere in the path
-# order matters — check specific patterns beofre -00 or it'll match -001 etc
+# order matters - check specific patterns before -00 or it'll match -001 etc
 get_status() {
     local filepath="$1"
     if printf '%s' "$filepath" | grep -qiE -- '-02[[:space:]]*\(working[[:space:]]+on\)'; then
@@ -170,24 +169,26 @@ csv_escape() {
 print_header
 echo "  Scanning: $ROOT_DIR"
 echo ""
+echo "  Counting files..."
 
-# pass 1 — count total files so we can show a real progress bar and not sit around all day wondering if it's still running
+# pass 1 - count total files so we can show a real progress bar
 total_files=0
 spinner_tick=0
-while IFS= read -r filepath; do
+while IFS= read -r -d '' filepath; do
     total_files=$((total_files + 1))
     spinner_tick=$((spinner_tick + 1))
-    if [ "$((spinner_tick % 200))" -eq 0 ]; then
+    if [ "$((spinner_tick % 10))" -eq 0 ]; then
         show_spinner "$total_files"
     fi
-done < <(find "$ROOT_DIR" -type f)
+done < <(find "$ROOT_DIR" -type f -print0)
 
 clear_line
+echo "  Processing files..."
 
 # write CSV header
 printf 'File Type,File Name,File Path,Size (MB),Depth,Status\n' > "$OUTPUT"
 
-# pass 2 — process files
+# pass 2 - process files
 file_count=0
 
 while IFS= read -r -d '' filepath; do
@@ -216,7 +217,7 @@ while IFS= read -r -d '' filepath; do
 
     file_count=$((file_count + 1))
 
-    if [ "$((file_count % 50))" -eq 0 ]; then
+    if [ "$((file_count % 10))" -eq 0 ]; then
         show_bar "$file_count" "$total_files"
     fi
 
