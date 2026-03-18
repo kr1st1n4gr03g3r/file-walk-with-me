@@ -46,20 +46,41 @@ fi
 # progress display
 
 FIRE_FRAMES=(
-    "  ) )  ( (  ) )  ( ( "
-    " ) )  ( (  ) )  ( (  "
-    ") )  ( (  ) )  ( (   "
-    " )  ( (  ) )  ( (  ) "
-    "  ( (  ) )  ( (  ) ) "
-    " ( (  ) )  ( (  ) )  "
-    "( (  ) )  ( (  ) )   "
-    " (  ) )  ( (  ) )  ( "
+    "   (  )   (   )  (  )   "
+    "  (   )  ) ^ (  (   )  "
+    "   ) (  (  ^ ) )  ) (  "
+    "  ( (  ) ) ^ ( (  ) )  "
+    "   ) ) (  ^^^  ) ( (   "
+    "  ( (  ) )^^^^(  ) )   "
+    "   ) (   )^^^^^ ) (    "
+    "  (   ) (^^^^^^^) (    "
+)
+
+STATUS_MESSAGES=(
+    "☕️ A damn fine scan ☕️"
+    "🦉 Hoooooot Hoooooooot 🦉"
+    "🎤 Diane, here's something we haven't seen before: a mounted disk 🎤"
+    "🫧  Those GBs you like are going to come back in style 🫧"
+    "🐟 There's a file in the percolator 🐟"
+    "🔴 This path is not what it seems 🔴"
+    "🌲 Scanning the woods 🌲"
+    "🔥 File walk with me 🔥"
+    "🪵  My log has something to say about your versioning patterns 🪵"
+    "🩶  The directory is wrapped in plastic 🩶"
+    "🪺  We live inside a nested folder 🪺"
+    "🕳  Entering the Black Lodge 🕳️"
+    "📼  Diane, the shared drive is haunted 📼"
+    "🎞  Meanwhile... 🎞️"
 )
 
 BAR_WIDTH=30
-LINE_WIDTH=90
+LINE_WIDTH=160
 FRAME_IDX=0
 CURRENT_FRAME=""
+MESSAGE_IDX=0
+CURRENT_MESSAGE="${STATUS_MESSAGES[0]}"
+LAST_MESSAGE_CHANGE=0
+DISPLAY_INITIALIZED=0
 
 print_header() {
     echo ""
@@ -74,16 +95,55 @@ next_frame() {
     FRAME_IDX=$((FRAME_IDX + 1))
 }
 
+update_message() {
+    local now
+    now=$(date +%s)
+
+    if [ "$LAST_MESSAGE_CHANGE" -eq 0 ]; then
+        LAST_MESSAGE_CHANGE="$now"
+        CURRENT_MESSAGE="${STATUS_MESSAGES[$MESSAGE_IDX]}"
+        return
+    fi
+
+    if [ $((now - LAST_MESSAGE_CHANGE)) -ge 4 ]; then
+        MESSAGE_IDX=$(((MESSAGE_IDX + 1) % ${#STATUS_MESSAGES[@]}))
+        CURRENT_MESSAGE="${STATUS_MESSAGES[$MESSAGE_IDX]}"
+        LAST_MESSAGE_CHANGE="$now"
+    fi
+}
+
+init_display() {
+    if [ "$DISPLAY_INITIALIZED" -eq 0 ]; then
+        printf "\n\n\n"
+        DISPLAY_INITIALIZED=1
+    fi
+}
+
+redraw_display() {
+    local line1="$1"
+    local line2="$2"
+    local line3="$3"
+
+    init_display
+    printf "\033[3F\033[J"
+    printf "%s\n%s\n%s\n" "$line1" "$line2" "$line3"
+}
+
 show_spinner() {
     local count="$1"
     next_frame
-    printf "\r  %s  The owls are counting...  %d" "$CURRENT_FRAME" "$count"
+    update_message
+    redraw_display \
+        "$CURRENT_FRAME" \
+        "$CURRENT_MESSAGE" \
+        "$count files counted..."
 }
 
 show_bar() {
     local current="$1"
     local total="$2"
     next_frame
+    update_message
 
     local pct=0
     local filled=0
@@ -103,7 +163,10 @@ show_bar() {
         i=$((i + 1))
     done
 
-    printf "\r  %s  [%s] %3d%%  |  %d / %d" "$CURRENT_FRAME" "$bar" "$pct" "$current" "$total"
+    redraw_display \
+        "$CURRENT_FRAME" \
+        "$CURRENT_MESSAGE" \
+        "[$bar]  $pct%  |  $current / $total"
 }
 
 show_done() {
@@ -114,12 +177,19 @@ show_done() {
         bar="${bar}#"
         i=$((i + 1))
     done
-    printf "\r  ( o,o )  ( o,o )  ( o,o )    [%s] 100%%  |  %d / %d\n\n" \
-        "$bar" "$total" "$total"
+
+    redraw_display \
+        "  ( o,o )  ( o,o )  ( o,o )" \
+        "✅ Audit complete" \
+        "[$bar]  100%  |  $total / $total"
+    echo ""
 }
 
 clear_line() {
-    printf "\r%${LINE_WIDTH}s\r" ""
+    if [ "$DISPLAY_INITIALIZED" -eq 1 ]; then
+        printf "\033[3F\033[J"
+        DISPLAY_INITIALIZED=0
+    fi
 }
 
 # returns file size in bytes
