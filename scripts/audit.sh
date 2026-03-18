@@ -3,6 +3,8 @@
 # file-walk-with-me — Bash fallback for restricted Windows environments
 # =============================================================================
 #
+# Repo: https://github.com/kr1st1n4gr03g3r/file-walk-with-me
+#
 # Outputs a CSV report instead of .xlsx. Excel can open CSV files directly.
 #
 # USAGE
@@ -59,7 +61,7 @@ FIRE_FRAMES=(
 STATUS_MESSAGES=(
     "☕️ A damn fine scan ☕️"
     "🦉 Hoooooot Hoooooooot 🦉"
-    "🎤 Diane, here's something we haven't seen before: a mounted disk 🎤"
+    "🎤  Diane, here's something we haven't seen before: a mounted disk 🎤"
     "🫧  Those GBs you like are going to come back in style 🫧"
     "🐟 There's a file in the percolator 🐟"
     "🔴 This path is not what it seems 🔴"
@@ -68,9 +70,9 @@ STATUS_MESSAGES=(
     "🪵  My log has something to say about your versioning patterns 🪵"
     "🩶  The directory is wrapped in plastic 🩶"
     "🪺  We live inside a nested folder 🪺"
-    "🕳  Entering the Black Lodge 🕳️"
+    "🕳️  Entering the Black Lodge 🕳️"
     "📼  Diane, the shared drive is haunted 📼"
-    "🎞  Meanwhile... 🎞️"
+    "🎞️  Meanwhile... 🎞️"
 )
 
 BAR_WIDTH=30
@@ -85,7 +87,7 @@ DISPLAY_INITIALIZED=0
 print_header() {
     echo ""
     echo "  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    echo "    📂 🔥 f i l e   w a l k   w i t h   m e"
+    echo "    📂 🔥 F i l e   W a l k   W i t h   M e" 📂 🔥
     echo "  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo ""
 }
